@@ -30,7 +30,8 @@ class Accuracy(Metric):
             y_pred (np.ndarray): Predicted labels.
 
         Returns:
-            float: The accuracy score.
+            float: The accuracy score, calculated
+              as the proportion of correct predictions.
         """
         correct = np.sum(y_true == y_pred)
         total = len(y_true)
@@ -41,6 +42,9 @@ class Precision(Metric):
     def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """
         Calculates the precision of predictions.
+
+        Precision is the ratio of true positives to
+          the sum of true and false positives.
 
         Args:
             y_true (np.ndarray): True labels.
@@ -59,6 +63,9 @@ class Recall(Metric):
     def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """
         Calculates the recall of predictions.
+
+        Recall is the ratio of true positives to the sum
+          of true positives and false negatives.
 
         Args:
             y_true (np.ndarray): True labels.
@@ -80,6 +87,9 @@ class MeanSquaredError(Metric):
         """
         Calculates the Mean Squared Error (MSE) of predictions.
 
+        MSE measures the average of the squared differences
+          between actual and predicted values.
+
         Args:
             y_true (np.ndarray): True target values.
             y_pred (np.ndarray): Predicted target values.
@@ -94,6 +104,9 @@ class MeanAbsoluteError(Metric):
     def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """
         Calculates the Mean Absolute Error (MAE) of predictions.
+
+        MAE measures the average of the absolute differences between
+          actual and predicted values.
 
         Args:
             y_true (np.ndarray): True target values.
@@ -110,12 +123,16 @@ class R2Score(Metric):
         """
         Calculates the R-squared (R²) score of predictions.
 
+        R² represents the proportion of the variance in the dependent
+          variable that is predictable from the independent variables.
+
         Args:
             y_true (np.ndarray): True target values.
             y_pred (np.ndarray): Predicted target values.
 
         Returns:
-            float: The R² score, a measure of goodness-of-fit.
+            float: The R² score, a measure of goodness-of-fit. The score
+              ranges from 0 to 1, where 1 indicates perfect prediction.
         """
         ss_total = np.sum((y_true - np.mean(y_true)) ** 2)
         ss_res = np.sum((y_true - y_pred) ** 2)
