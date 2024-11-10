@@ -21,8 +21,9 @@ class MultipleLinearRegression(Model):
         as parameters.
 
         Args:
-            X (np.ndarray): Input feature matrix.
-            y (np.ndarray): Target variable array.
+            X (np.ndarray): Input feature matrix with shape
+              (n_samples, n_features).
+            y (np.ndarray): Target variable array with shape (n_samples,).
         """
         self.model.fit(X, y)
         self.parameters = {
@@ -35,10 +36,11 @@ class MultipleLinearRegression(Model):
         Make predictions on the provided data.
 
         Args:
-            X (np.ndarray): Input feature matrix.
+            X (np.ndarray): Input feature matrix with shape
+              (n_samples, n_features).
 
         Returns:
-            np.ndarray: Predicted values.
+            np.ndarray: Predicted values with shape (n_samples,).
         """
         return self.model.predict(X)
 
@@ -47,8 +49,9 @@ class MultipleLinearRegression(Model):
         Return the R^2 score of the model on the provided data.
 
         Args:
-            X (np.ndarray): Input feature matrix.
-            y (np.ndarray): Target variable array.
+            X (np.ndarray): Input feature matrix with shape
+              (n_samples, n_features).
+            y (np.ndarray): Target variable array with shape (n_samples,).
 
         Returns:
             float: R^2 score of the model on the given data.
@@ -70,8 +73,9 @@ class DecisionTreeRegression(Model):
         Train the model on the provided data.
 
         Args:
-            X (np.ndarray): Input feature matrix.
-            y (np.ndarray): Target variable array.
+            X (np.ndarray): Input feature matrix with shape
+              (n_samples, n_features).
+            y (np.ndarray): Target variable array with shape (n_samples,).
         """
         self.model.fit(X, y)
 
@@ -80,10 +84,11 @@ class DecisionTreeRegression(Model):
         Make predictions on the provided data.
 
         Args:
-            X (np.ndarray): Input feature matrix.
+            X (np.ndarray): Input feature matrix with shape
+              (n_samples, n_features).
 
         Returns:
-            np.ndarray: Predicted values.
+            np.ndarray: Predicted values with shape (n_samples,).
         """
         return self.model.predict(X)
 
@@ -92,8 +97,9 @@ class DecisionTreeRegression(Model):
         Return the R^2 score of the model on the provided data.
 
         Args:
-            X (np.ndarray): Input feature matrix.
-            y (np.ndarray): Target variable array.
+            X (np.ndarray): Input feature matrix with shape
+              (n_samples, n_features).
+            y (np.ndarray): Target variable array with shape (n_samples,).
 
         Returns:
             float: R^2 score of the model on the given data.
@@ -115,8 +121,9 @@ class RandomForestRegression(Model):
         Train the model on the provided data.
 
         Args:
-            X (np.ndarray): Input feature matrix.
-            y (np.ndarray): Target variable array.
+            X (np.ndarray): Input feature matrix with shape
+              (n_samples, n_features).
+            y (np.ndarray): Target variable array with shape (n_samples,).
         """
         self.model.fit(X, y)
 
@@ -125,10 +132,11 @@ class RandomForestRegression(Model):
         Make predictions on the provided data.
 
         Args:
-            X (np.ndarray): Input feature matrix.
+            X (np.ndarray): Input feature matrix with shape
+              (n_samples, n_features).
 
         Returns:
-            np.ndarray: Predicted values.
+            np.ndarray: Predicted values with shape (n_samples,).
         """
         return self.model.predict(X)
 
@@ -137,8 +145,9 @@ class RandomForestRegression(Model):
         Return the R^2 score of the model on the provided data.
 
         Args:
-            X (np.ndarray): Input feature matrix.
-            y (np.ndarray): Target variable array.
+            X (np.ndarray): Input feature matrix with shape
+              (n_samples, n_features).
+            y (np.ndarray): Target variable array with shape (n_samples,).
 
         Returns:
             float: R^2 score of the model on the given data.
@@ -160,8 +169,9 @@ class SVRRegression(Model):
         Train the model on the provided data.
 
         Args:
-            X (np.ndarray): Input feature matrix.
-            y (np.ndarray): Target variable array.
+            X (np.ndarray): Input feature matrix with shape
+              (n_samples, n_features).
+            y (np.ndarray): Target variable array with shape (n_samples,).
         """
         self.model.fit(X, y)
 
@@ -170,10 +180,11 @@ class SVRRegression(Model):
         Make predictions on the provided data.
 
         Args:
-            X (np.ndarray): Input feature matrix.
+            X (np.ndarray): Input feature matrix with shape
+              (n_samples, n_features).
 
         Returns:
-            np.ndarray: Predicted values.
+            np.ndarray: Predicted values with shape (n_samples,).
         """
         return self.model.predict(X)
 
@@ -182,8 +193,9 @@ class SVRRegression(Model):
         Return the R^2 score of the model on the provided data.
 
         Args:
-            X (np.ndarray): Input feature matrix.
-            y (np.ndarray): Target variable array.
+            X (np.ndarray): Input feature matrix with shape
+              (n_samples, n_features).
+            y (np.ndarray): Target variable array with shape (n_samples,).
 
         Returns:
             float: R^2 score of the model on the given data.
