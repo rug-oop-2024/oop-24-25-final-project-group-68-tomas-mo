@@ -1,2 +1,13 @@
+from .regression import (
+    MultipleLinearRegression,
+    SVRRegression,
+    DecisionTreeRegression,
+    RandomForestRegression,
+)
 
-from autoop.core.ml.model.regression.multiple_linear_regression import MultipleLinearRegression
+__all__ = [
+    "MultipleLinearRegression",
+    "SVRRegression",
+    "DecisionTreeRegression",
+    "RandomForestRegression"
+]
