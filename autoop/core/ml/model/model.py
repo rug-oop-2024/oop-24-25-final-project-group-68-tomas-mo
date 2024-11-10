@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+import numpy as np
 
 
 class Model(ABC):
@@ -18,40 +19,40 @@ class Model(ABC):
         self.params: Dict[str, Any] = params
 
     @abstractmethod
-    def fit(self, X: Any, y: Any) -> None:
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
         """
         Trains the model using the input data and target labels.
 
         Args:
-            X: Input features.
-            y: Target labels.
+            X (np.ndarray): Input feature matrix.
+            y (np.ndarray): Target labels.
         """
         pass
 
     @abstractmethod
-    def predict(self, X: Any) -> Any:
+    def predict(self, X: np.ndarray) -> np.ndarray:
         """
         Predicts outcomes using the trained model on input data.
 
         Args:
-            X: Input features to make predictions on.
+            X (np.ndarray): Input feature matrix.
 
         Returns:
-            Predicted outcomes.
+            np.ndarray: Predicted outcomes.
         """
         pass
 
-    def evaluate(self, X: Any, y: Any, metric: Any) -> float:
+    def evaluate(self, X: np.ndarray, y: np.ndarray, metric: Any) -> float:
         """
         Evaluates the model using a specified metric.
 
         Args:
-            X: Input features.
-            y: True target labels.
-            metric: A metric function to evaluate predictions.
+            X (np.ndarray): Input feature matrix.
+            y (np.ndarray): True target labels.
+            metric (callable): A metric function to evaluate predictions.
 
         Returns:
-            Metric value calculated on predictions.
+            float: Metric value calculated on predictions.
         """
         y_pred = self.predict(X)
         return metric(y, y_pred)
@@ -70,25 +71,25 @@ class LogisticRegressionModel(Model):
         super().__init__(**params)
         self.model = LogisticRegression(**params)
 
-    def fit(self, X: Any, y: Any) -> None:
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
         """
         Trains the Logistic Regression model.
 
         Args:
-            X: Input features.
-            y: Target labels.
+            X (np.ndarray): Input feature matrix.
+            y (np.ndarray): Target labels.
         """
         self.model.fit(X, y)
 
-    def predict(self, X: Any) -> Any:
+    def predict(self, X: np.ndarray) -> np.ndarray:
         """
         Predicts outcomes using the trained Logistic Regression model.
 
         Args:
-            X: Input features.
+            X (np.ndarray): Input feature matrix.
 
         Returns:
-            Predicted outcomes.
+            np.ndarray: Predicted outcomes.
         """
         return self.model.predict(X)
 
@@ -104,12 +105,26 @@ class DecisionTreeModel(Model):
         super().__init__(**params)
         self.model = DecisionTreeClassifier(**params)
 
-    def fit(self, X: Any, y: Any) -> None:
-        """Trains the Decision Tree Classifier model."""
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
+        """
+        Trains the Decision Tree Classifier model.
+
+        Args:
+            X (np.ndarray): Input feature matrix.
+            y (np.ndarray): Target labels.
+        """
         self.model.fit(X, y)
 
-    def predict(self, X: Any) -> Any:
-        """Predicts outcomes using the trained Decision Tree Classifier."""
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """
+        Predicts outcomes using the trained Decision Tree Classifier.
+
+        Args:
+            X (np.ndarray): Input feature matrix.
+
+        Returns:
+            np.ndarray: Predicted outcomes.
+        """
         return self.model.predict(X)
 
 
@@ -124,12 +139,26 @@ class RandomForestModel(Model):
         super().__init__(**params)
         self.model = RandomForestClassifier(**params)
 
-    def fit(self, X: Any, y: Any) -> None:
-        """Trains the Random Forest Classifier model."""
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
+        """
+        Trains the Random Forest Classifier model.
+
+        Args:
+            X (np.ndarray): Input feature matrix.
+            y (np.ndarray): Target labels.
+        """
         self.model.fit(X, y)
 
-    def predict(self, X: Any) -> Any:
-        """Predicts outcomes using the trained Random Forest Classifier."""
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """
+        Predicts outcomes using the trained Random Forest Classifier.
+
+        Args:
+            X (np.ndarray): Input feature matrix.
+
+        Returns:
+            np.ndarray: Predicted outcomes.
+        """
         return self.model.predict(X)
 
 
@@ -146,12 +175,26 @@ class LinearRegressionModel(Model):
         super().__init__(**params)
         self.model = LinearRegression(**params)
 
-    def fit(self, X: Any, y: Any) -> None:
-        """Trains the Linear Regression model."""
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
+        """
+        Trains the Linear Regression model.
+
+        Args:
+            X (np.ndarray): Input feature matrix.
+            y (np.ndarray): Target variable.
+        """
         self.model.fit(X, y)
 
-    def predict(self, X: Any) -> Any:
-        """Predicts outcomes using the trained Linear Regression model."""
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """
+        Predicts outcomes using the trained Linear Regression model.
+
+        Args:
+            X (np.ndarray): Input feature matrix.
+
+        Returns:
+            np.ndarray: Predicted outcomes.
+        """
         return self.model.predict(X)
 
 
@@ -166,12 +209,26 @@ class DecisionTreeRegressorModel(Model):
         super().__init__(**params)
         self.model = DecisionTreeRegressor(**params)
 
-    def fit(self, X: Any, y: Any) -> None:
-        """Trains the Decision Tree Regressor model."""
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
+        """
+        Trains the Decision Tree Regressor model.
+
+        Args:
+            X (np.ndarray): Input feature matrix.
+            y (np.ndarray): Target variable.
+        """
         self.model.fit(X, y)
 
-    def predict(self, X: Any) -> Any:
-        """Predicts outcomes using the trained Decision Tree Regressor."""
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """
+        Predicts outcomes using the trained Decision Tree Regressor.
+
+        Args:
+            X (np.ndarray): Input feature matrix.
+
+        Returns:
+            np.ndarray: Predicted outcomes.
+        """
         return self.model.predict(X)
 
 
@@ -186,10 +243,24 @@ class RandomForestRegressorModel(Model):
         super().__init__(**params)
         self.model = RandomForestRegressor(**params)
 
-    def fit(self, X: Any, y: Any) -> None:
-        """Trains the Random Forest Regressor model."""
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
+        """
+        Trains the Random Forest Regressor model.
+
+        Args:
+            X (np.ndarray): Input feature matrix.
+            y (np.ndarray): Target variable.
+        """
         self.model.fit(X, y)
 
-    def predict(self, X: Any) -> Any:
-        """Predicts outcomes using the trained Random Forest Regressor."""
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """
+        Predicts outcomes using the trained Random Forest Regressor.
+
+        Args:
+            X (np.ndarray): Input feature matrix.
+
+        Returns:
+            np.ndarray: Predicted outcomes.
+        """
         return self.model.predict(X)
