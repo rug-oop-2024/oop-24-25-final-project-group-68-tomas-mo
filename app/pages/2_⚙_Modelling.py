@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
-import io
+import json
+import os
 
-from app.core.system import AutoMLSystem
 from autoop.core.ml.dataset import Dataset
 from autoop.functional.feature import detect_feature_types
 
@@ -27,44 +27,59 @@ write_helper_text(
     "model on a dataset."
 )
 
-# Initialize the AutoML system
-automl = AutoMLSystem.get_instance()
+# Paths to directories and files
+ASSETS_DIR = 'assets'
+OBJECTS_DIR = os.path.join(ASSETS_DIR, 'objects')
+REGISTRY_PATH = os.path.join(ASSETS_DIR, 'registry.json')
 
-# Load existing datasets from the artifact registry
-datasets = automl.registry.list(type="dataset")
+# Load the dataset registry
+if os.path.exists(REGISTRY_PATH):
+    with open(REGISTRY_PATH, 'r') as f:
+        registry = json.load(f)
+else:
+    st.error(
+        "No datasets found in registry. Please add datasets to registry.json."
+    )
+    st.stop()
 
-# **ST/modelling/datasets/list:** Load existing datasets using the artifact
-dataset_names = [dataset.name for dataset in datasets]
+
+dataset_entries = [entry for entry in registry if entry['type'] == 'dataset']
+dataset_names = [entry['name'] for entry in dataset_entries]
 selected_dataset_name = st.selectbox("Select a Dataset", dataset_names)
 
-# Retrieve the selected dataset
-selected_dataset = next(
-    (dataset for dataset in datasets if dataset.name == selected_dataset_name),
+# Retrieve the selected dataset's information
+selected_dataset_entry = next(
+    (
+        entry for entry in dataset_entries
+        if entry['name'] == selected_dataset_name
+    ),
     None
 )
 
-if selected_dataset:
-    # Read dataset data into a pandas DataFrame
-    try:
-        csv_data = selected_dataset.data.decode('utf-8')
-        dataset_df = pd.read_csv(io.StringIO(csv_data))
-        st.write("## Dataset Preview")
-        st.dataframe(dataset_df.head())
-    except Exception as e:
-        st.error(f"Error loading dataset: {e}")
-        st.stop()
-else:
-    st.error("Dataset not found.")
+if selected_dataset_entry is None:
+    st.error("Selected dataset not found in registry.")
+    st.stop()
+
+# Construct the full dataset path
+dataset_path = os.path.join(ASSETS_DIR, selected_dataset_entry['asset_path'])
+
+# Read dataset data into a pandas DataFrame
+try:
+    dataset_df = pd.read_csv(dataset_path)
+    st.write("## Dataset Preview")
+    st.dataframe(dataset_df.head())
+except Exception as e:
+    st.error(f"Error loading dataset: {e}")
     st.stop()
 
 # Convert DataFrame back to Dataset object
 dataset = Dataset.from_dataframe(
     data=dataset_df,
     name=selected_dataset_name,
-    asset_path=selected_dataset.asset_path
+    asset_path=dataset_path
 )
 
-# **ST/modelling/datasets/features:** Detect features and generate selection
+
 try:
     # Detect feature types using your implemented function
     detected_features = detect_feature_types(dataset)

@@ -24,6 +24,8 @@ def load_registry() -> list:
                 registry = json.load(f)
                 if isinstance(registry, list):
                     return registry
+        else:
+            return []
     except json.JSONDecodeError:
         st.error("Error reading the registry file. Reinitializing registry.")
     return []  # Return an empty list if file is missing or corrupted
@@ -38,7 +40,7 @@ def save_registry(registry: list) -> None:
 
 # Function to refresh dataset list
 def refresh_datasets() -> list:
-    """Returns a list of dataset file names from the registry."""
+    """Returns a list of dataset names from the registry."""
     registry = load_registry()
     return [entry['name'] for entry in registry if entry['type'] == 'dataset']
 
@@ -61,27 +63,43 @@ if st.session_state['dataset_files']:
 
     # Load and display the selected dataset
     if selected_dataset_name:
-        dataset_path = os.path.join(
-            OBJECTS_DIR, f"{selected_dataset_name}.csv"
+        dataset_entry = next(
+            (entry for entry in load_registry()
+             if entry['name'] == selected_dataset_name),
+            None
         )
-        if os.path.exists(dataset_path):
-            dataset_df = pd.read_csv(dataset_path)
-            st.write(f"*Dataset Name:* {selected_dataset_name}")
-            st.write("*Sample Data:*")
-            st.dataframe(dataset_df.head())
+        if dataset_entry:
+            dataset_path = os.path.join(
+                ASSETS_DIR, dataset_entry['asset_path']
+            )
+            if os.path.exists(dataset_path):
+                dataset_df = pd.read_csv(dataset_path)
+                st.write(f"*Dataset Name:* {selected_dataset_name}")
+                st.write("*Sample Data:*")
+                st.dataframe(dataset_df.head())
+            else:
+                st.error(f"Dataset '{selected_dataset_name}' not found.")
+                st.session_state['dataset_files'] = refresh_datasets()
         else:
-            st.error(f"Dataset '{selected_dataset_name}' not found.")
-            st.session_state['dataset_files'] = refresh_datasets()
+            st.error(
+                f"Dataset '{selected_dataset_name}' not found in registry."
+            )
 
     # Delete the selected dataset
     if st.button("Delete Dataset"):
         if selected_dataset_name:
-            dataset_path = os.path.join(
-                OBJECTS_DIR, f"{selected_dataset_name}.csv"
+            dataset_entry = next(
+                (entry for entry in load_registry()
+                 if entry['name'] == selected_dataset_name),
+                None
             )
-            if os.path.exists(dataset_path):
-                os.remove(dataset_path)
-                st.success(f"Deleted dataset: {selected_dataset_name}")
+            if dataset_entry:
+                dataset_path = os.path.join(ASSETS_DIR, dataset_entry[
+                    'asset_path'
+                    ])
+                if os.path.exists(dataset_path):
+                    os.remove(dataset_path)
+                    st.success(f"Deleted dataset: {selected_dataset_name}")
 
                 # Update the registry
                 registry = load_registry()
@@ -96,6 +114,10 @@ if st.session_state['dataset_files']:
                 st.session_state['refresh_flag'] = not st.session_state.get(
                     'refresh_flag', False
                 )
+            else:
+                st.error(f"Dataset '{
+                    selected_dataset_name
+                    }' not found in registry.")
 else:
     st.write("No datasets available.")
 
@@ -146,6 +168,6 @@ if uploaded_file:
                 # Set a flag in session state to trigger a re-render
                 st.session_state['refresh_flag'] = not st.session_state.get(
                     'refresh_flag', False
-                    )
+                )
         else:
             st.error("Please enter a name for the dataset.")
