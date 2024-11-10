@@ -101,24 +101,36 @@ Pipeline(
         self._model.fit(X, Y)
 
     def _evaluate(self):
-        X = self._compact_vectors(self._test_X)
-        Y = self._test_y
-        self._metrics_results = []
-        predictions = self._model.predict(X)
+        # Evaluate on the test set
+        X_test = self._compact_vectors(self._test_X)
+        Y_test = self._test_y
+        self._test_metrics_results = []
+        test_predictions = self._model.predict(X_test)
         for metric in self._metrics:
-            result = metric.evaluate(predictions, Y)
-            self._metrics_results.append((metric, result))
-        self._predictions = predictions
+            result = metric.evaluate(test_predictions, Y_test)
+            self._test_metrics_results.append((metric, result))
+        self._test_predictions = test_predictions
+
+        # Evaluate on the training set
+        X_train = self._compact_vectors(self._train_X)
+        Y_train = self._train_y
+        self._train_metrics_results = []
+        train_predictions = self._model.predict(X_train)
+        for metric in self._metrics:
+            result = metric.evaluate(train_predictions, Y_train)
+            self._train_metrics_results.append((metric, result))
+        self._train_predictions = train_predictions
 
     def execute(self):
         self._preprocess_features()
         self._split_data()
         self._train()
         self._evaluate()
-        return {
-            "metrics": self._metrics_results,
-            "predictions": self._predictions,
-        }
-        
 
-    
+        # Return metrics and predictions for both train and test sets
+        return {
+            "train_metrics": self._train_metrics_results,
+            "train_predictions": self._train_predictions,
+            "test_metrics": self._test_metrics_results,
+            "test_predictions": self._test_predictions,
+        }
