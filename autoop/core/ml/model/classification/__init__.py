@@ -2,13 +2,11 @@
 from .classification import (
     LogisticRegressionModel,
     DecisionTreeClassification,
-    RandomForestClassification,
-    SVCClassification
+    RandomForestClassification
 )
 
 __all__ = [
     "LogisticRegressionModel",
     "DecisionTreeClassification",
-    "RandomForestClassification",
-    "SVCClassification"
+    "RandomForestClassification"
 ]

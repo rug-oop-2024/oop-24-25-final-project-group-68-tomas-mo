@@ -22,14 +22,16 @@ class Precision(Metric):
     def __call__(self, y_true, y_pred):
         true_positives = np.sum((y_pred == 1) & (y_true == 1))
         predicted_positives = np.sum(y_pred == 1)
-        return true_positives / predicted_positives if predicted_positives != 0 else 0
+        return (true_positives / predicted_positives
+                if predicted_positives != 0 else 0)
 
 
 class Recall(Metric):
     def __call__(self, y_true, y_pred):
         true_positives = np.sum((y_pred == 1) & (y_true == 1))
         actual_positives = np.sum(y_true == 1)
-        return true_positives / actual_positives if actual_positives != 0 else 0
+        return (true_positives / actual_positives
+                if actual_positives != 0 else 0)
 
 
 # Regression Metrics

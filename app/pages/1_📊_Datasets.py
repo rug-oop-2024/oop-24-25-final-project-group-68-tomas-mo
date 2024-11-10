@@ -1,60 +1,151 @@
-# st/page/datasets.py
-
 import streamlit as st
 import pandas as pd
-import pickle
-from app.core.system import AutoMLSystem
-from autoop.core.ml.dataset import Dataset
-from autoop.core.ml.artifact import Artifact
+import os
+import json
 
-st.set_page_config(page_title="Dataset Management", page_icon="📂")
+# Title for the dataset management page
+st.title("Dataset Management")
 
-# Initialize AutoML system instance
-automl_system = AutoMLSystem.get_instance()
+# Directories and files
+ASSETS_DIR = 'assets'
+OBJECTS_DIR = os.path.join(ASSETS_DIR, 'objects')
+REGISTRY_FILE = os.path.join(ASSETS_DIR, 'registry.json')
 
-def main():
-    st.title("Dataset Management")
-    st.write("Manage datasets for use in your ML models.")
+# Ensure directories exist
+os.makedirs(OBJECTS_DIR, exist_ok=True)
 
-    # Section 1: Upload and Convert Dataset (Create)
-    st.header("Upload and Convert Dataset")
-    uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
-        st.write("Preview of Uploaded Dataset:", df.head())
 
-        # Convert to Dataset and Store Temporarily
-        dataset_name = st.text_input("Enter a name for the dataset")
-        if st.button("Convert and Save Temporarily"):
-            dataset = Dataset.from_dataframe(df)
-            st.session_state.setdefault("converted_datasets", {})
-            st.session_state["converted_datasets"][dataset_name] = dataset
-            st.success(f"Dataset '{dataset_name}' converted and stored temporarily.")
+# Function to load the registry
+def load_registry() -> list:
+    """Load registry from file if exists, else return empty list."""
+    try:
+        if os.path.exists(REGISTRY_FILE):
+            with open(REGISTRY_FILE, 'r') as f:
+                registry = json.load(f)
+                if isinstance(registry, list):
+                    return registry
+    except json.JSONDecodeError:
+        st.error("Error reading the registry file. Reinitializing registry.")
+    return []  # Return an empty list if file is missing or corrupted
 
-    # Section 2: Save Converted Dataset (Save)
-    st.header("Save Converted Dataset")
-    if "converted_datasets" in st.session_state and st.session_state["converted_datasets"]:
-        dataset_name = st.selectbox("Select a dataset to save", options=st.session_state["converted_datasets"].keys())
-        if st.button("Save Dataset"):
-            dataset = st.session_state["converted_datasets"][dataset_name]
-            artifact = Artifact(name=dataset_name, data=pickle.dumps(dataset))
-            automl_system.registry.save(artifact)
-            st.success(f"Dataset '{dataset_name}' saved successfully!")
-            del st.session_state["converted_datasets"][dataset_name]  # Remove after saving
-    else:
-        st.write("No converted datasets to save. Please upload and convert a dataset first.")
 
-    # Section 3: View Existing Datasets (List)
-    st.header("View Existing Datasets")
-    datasets = automl_system.registry.list(type="dataset")
-    dataset_names = [artifact.name for artifact in datasets]
-    selected_dataset_name = st.selectbox("Choose a dataset to view", options=dataset_names)
+# Function to save the registry
+def save_registry(registry: list) -> None:
+    """Save the registry to a file."""
+    with open(REGISTRY_FILE, 'w') as f:
+        json.dump(registry, f, indent=4)
 
+
+# Function to refresh dataset list
+def refresh_datasets() -> list:
+    """Returns a list of dataset file names from the registry."""
+    registry = load_registry()
+    return [entry['name'] for entry in registry if entry['type'] == 'dataset']
+
+
+# Initialize dataset list in session state
+if 'dataset_files' not in st.session_state:
+    st.session_state['dataset_files'] = refresh_datasets()
+
+# Section: List Available Datasets
+st.subheader("Available Datasets")
+
+if st.session_state['dataset_files']:
+    dataset_options = st.session_state['dataset_files']
+
+    # Selectbox for dataset selection
+    selected_dataset_name = st.selectbox(
+        "Select a dataset to view or delete",
+        options=dataset_options
+    )
+
+    # Load and display the selected dataset
     if selected_dataset_name:
-        artifact = automl_system.registry.load(selected_dataset_name)
-        dataset = pickle.loads(artifact.data)
-        st.write("Dataset Preview:")
-        st.write(dataset.to_dataframe())  # Assuming Dataset has a to_dataframe method
+        dataset_path = os.path.join(
+            OBJECTS_DIR, f"{selected_dataset_name}.csv"
+        )
+        if os.path.exists(dataset_path):
+            dataset_df = pd.read_csv(dataset_path)
+            st.write(f"*Dataset Name:* {selected_dataset_name}")
+            st.write("*Sample Data:*")
+            st.dataframe(dataset_df.head())
+        else:
+            st.error(f"Dataset '{selected_dataset_name}' not found.")
+            st.session_state['dataset_files'] = refresh_datasets()
 
-if __name__ == "__main__":
-    main()
+    # Delete the selected dataset
+    if st.button("Delete Dataset"):
+        if selected_dataset_name:
+            dataset_path = os.path.join(
+                OBJECTS_DIR, f"{selected_dataset_name}.csv"
+            )
+            if os.path.exists(dataset_path):
+                os.remove(dataset_path)
+                st.success(f"Deleted dataset: {selected_dataset_name}")
+
+                # Update the registry
+                registry = load_registry()
+                registry = [
+                    e for e in registry if e['name'] != selected_dataset_name
+                ]
+                save_registry(registry)
+
+                # Refresh dataset list
+                st.session_state['dataset_files'] = refresh_datasets()
+                # Set a flag in session state to trigger a re-render
+                st.session_state['refresh_flag'] = not st.session_state.get(
+                    'refresh_flag', False
+                )
+else:
+    st.write("No datasets available.")
+
+# Section: Upload New Dataset
+st.subheader("Upload New Dataset")
+
+uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+
+# If a file is uploaded, show preview and save options
+if uploaded_file:
+    # Load CSV into a DataFrame and display a preview
+    df = pd.read_csv(uploaded_file)
+    st.write("Preview of uploaded data:")
+    st.dataframe(df.head())
+
+    # Input for dataset name
+    dataset_name = st.text_input("Enter a name for the dataset")
+
+    # Function to save the dataset
+    if st.button("Save Dataset"):
+        if dataset_name:
+            dataset_path = os.path.join(OBJECTS_DIR, f"{dataset_name}.csv")
+            if os.path.exists(dataset_path):
+                st.error(
+                    f"A dataset with the name '{dataset_name}' already exists."
+                )
+            else:
+                # Save CSV and update registry
+                df.to_csv(dataset_path, index=False)
+                st.success(
+                    f"Dataset '{dataset_name}' has been saved successfully."
+                )
+
+                # Update the registry
+                registry = load_registry()
+                new_entry = {
+                    "name": dataset_name,
+                    "type": "dataset",
+                    "asset_path": os.path.relpath(
+                        dataset_path, start=ASSETS_DIR
+                    )
+                }
+                registry.append(new_entry)
+                save_registry(registry)
+
+                # Refresh dataset list in session state
+                st.session_state['dataset_files'] = refresh_datasets()
+                # Set a flag in session state to trigger a re-render
+                st.session_state['refresh_flag'] = not st.session_state.get(
+                    'refresh_flag', False
+                    )
+        else:
+            st.error("Please enter a name for the dataset.")

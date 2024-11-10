@@ -5,6 +5,8 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
 
 class Model(ABC):
+    type: str
+
     def __init__(self, **params):
         """Initialize model with hyperparameters."""
         self.params = params

@@ -1,62 +1,91 @@
 from pydantic import BaseModel, Field
-from datetime import datetime
+from typing import Optional, List, Dict, Any
 import base64
-from typing import Optional
+import hashlib
 
 
 class Artifact(BaseModel):
-    """
-    A class representing an artifact in a machine learning pipeline, 
-    typically used to store models, data files, or other relevant objects.
-    """
-    id: Optional[str] = Field(None, description="Unique identifier for the artifact")
-    name: str = Field(..., description="Name of the artifact")
-    data: Optional[bytes] = Field(None, description="Binary data associated with the artifact")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="Timestamp of artifact creation")
+    """ A class representing an artifact with enhanced functionality. """
 
-    def encode_data(self):
-        """
-        Encodes the artifact's data into a base64 string.
-        
-        Returns:
-            str: Base64 encoded string of the artifact's data.
-        """
-        if self.data:
-            return base64.b64encode(self.data).decode('utf-8')
-        return None
+    name: Optional[str] = Field(None, description="The name of the artifact.")
+    type: Optional[str] = Field(None, description="The type of the artifact.")
+    data: Optional[bytes] = Field(
+        None,
+        description=(
+            "The binary data of the artifact."
+        ),
+    )
+    asset_path: Optional[str] = Field(
+        None, description="The path to the asset."
+    )
+    version: Optional[str] = Field(
+        None,
+        description="The version of the artifact."
+    )
+    tags: Optional[List[str]] = Field(
+        default_factory=list,
+        description="List of tags associated with the artifact."
+    )
+    metadata: Optional[Dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Additional metadata for the artifact."
+    )
 
-    def decode_data(self, encoded_data: str):
+    @property
+    def id(self) -> str:
         """
-        Decodes a base64 string back to binary data and assigns it to the artifact.
-        
-        Args:
-            encoded_data (str): Base64 encoded string of data to decode.
+        Generates a unique ID for the artifact based on its name and version.
         """
-        self.data = base64.b64decode(encoded_data.encode('utf-8'))
+        unique_string = f"{self.name}:{self.version}"
+        return hashlib.md5(unique_string.encode()).hexdigest()
 
-    def save_to_file(self, file_path: str):
+    def encode_data(self, data: str) -> bytes:
         """
-        Saves the binary data of the artifact to a file.
-        
-        Args:
-            file_path (str): Path where the file should be saved.
-        """
-        if self.data:
-            with open(file_path, 'wb') as file:
-                file.write(self.data)
-
-    @classmethod
-    def load_from_file(cls, file_path: str, name: str) -> 'Artifact':
-        """
-        Loads binary data from a file and creates an artifact instance.
+        Encodes a string as base64 bytes and stores it in self.data.
 
         Args:
-            file_path (str): Path to the file to load.
-            name (str): Name for the artifact instance.
+            data (str): The string data to encode.
 
         Returns:
-            Artifact: An instance of the Artifact class with loaded data.
+            bytes: The encoded base64 bytes.
         """
-        with open(file_path, 'rb') as file:
-            data = file.read()
-        return cls(name=name, data=data)
+        encoded_data = base64.b64encode(data.encode())
+        self.data = encoded_data
+        return encoded_data
+
+    def decode_data(self) -> str:
+        """
+        Decodes the base64 bytes in self.data and returns it as a string.
+
+        Returns:
+            str: The decoded string data.
+
+        Raises:
+            ValueError: If there is no data to decode.
+        """
+        if self.data is None:
+            raise ValueError("No data to decode.")
+        return base64.b64decode(self.data).decode()
+
+    def save(self, data: bytes) -> None:
+        """
+        Saves raw bytes to self.data.
+
+        Args:
+            data (bytes): The binary data to save.
+        """
+        self.data = data
+
+    def read(self) -> bytes:
+        """
+        Returns raw bytes from self.data.
+
+        Returns:
+            bytes: The raw binary data.
+
+        Raises:
+            ValueError: If there is no data to read.
+        """
+        if self.data is None:
+            raise ValueError("No data to read.")
+        return self.data

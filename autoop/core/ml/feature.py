@@ -5,20 +5,45 @@ import pandas as pd
 
 class Feature(BaseModel):
     """
-    Represents a feature in a dataset, with associated metadata and methods 
+    Represents a feature in a dataset, with associated metadata and methods
     to compute and retrieve statistics.
     """
     name: str = Field(..., description="Name of the feature")
-    feature_type: Literal['numerical', 'categorical'] = Field(..., description="Type of the feature")
-    description: Optional[str] = Field(None, description="Description of the feature")
-    data: Optional[pd.Series] = Field(None, description="Data series associated with the feature")
+    feature_type: Literal['numerical', 'categorical'] = Field(
+        ...,
+        description="Type of the feature"
+    )
+    description: Optional[str] = Field(
+        None,
+        description="Description of the feature"
+    )
+    data: Optional[pd.Series] = Field(
+        None,
+        description="Data series associated with the feature"
+    )
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+    def __init__(__pydantic_self__, **data):
+        # Check if `type` is provided as an argument, map it to `feature_type`
+        if 'type' in data:
+            data['feature_type'] = data.pop('type')
+        super().__init__(**data)
+
+    @property
+    def type(self) -> str:
+        """
+        Alias property for feature_type to ensure compatibility with tests.
+
+        Returns:
+            str: The type of the feature (numerical or categorical).
+        """
+        return self.feature_type
+
     def __str__(self) -> str:
         """
-        Provides a string representation of the feature, displaying its name and type.
-        
+        Provides a string representation of the feature, displaying name, type.
+
         Returns:
             str: A string representation of the feature.
         """
@@ -29,8 +54,9 @@ class Feature(BaseModel):
         Computes statistics based on the feature type.
 
         Returns:
-            dict: A dictionary of statistics (mean, median, std_dev for numerical; 
-                  mode and value counts for categorical).
+            dict: A dictionary of statistics (mean, median, std_dev
+                for numerical;
+                mode and value counts for categorical).
         """
         if self.data is None:
             return None
@@ -43,7 +69,9 @@ class Feature(BaseModel):
             }
         elif self.feature_type == 'categorical':
             return {
-                'mode': self.data.mode().iloc[0] if not self.data.mode().empty else None,
+                'mode': (self.data.mode().iloc[0]
+                         if not self.data.mode().empty
+                         else None),
                 'value_counts': self.data.value_counts().to_dict()
             }
         return None
